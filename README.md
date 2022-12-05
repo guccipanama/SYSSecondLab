@@ -1,3 +1,3 @@
 # SYSSecondLab
-* sygnals
+* signals
 * unnamed pipe
