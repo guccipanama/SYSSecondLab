@@ -3,14 +3,14 @@
 
 int main()
 {
-    int game_mode_var = 0;
-    std::cout << "Task 1: Using signals" << std::endl;
-    std::cout << "Task 2: Using unnamed pipe" << std::endl;
+    int game_mode = 0;
+    std::cout << "1 - Signals" << std::endl;
+    std::cout << "2 - Pipe" << std::endl;
 
-    while (game_mode_var < 1 || game_mode_var > 3 )
-        std::cin >> game_mode_var;
+    while (game_mode < 1 || game_mode > 2 )
+        std::cin >> game_mode;
 
-    switch(game_mode_var)
+    switch(game_mode)
     {
         case 1:
         {
@@ -73,12 +73,33 @@ int main()
         {
             int count = 0;
             bool game_flag = true;
+            int fd_to_send, fd_to_recv;
+            pid_t p_id;
+            {
+                int fd[2];
+                int fd_s[2];
+                check(pipe(fd));
+                check(pipe(fd_s));
+//
+                p_id = check(fork());
+//
+                bool isParent = (p_id != 0);
 
-            int fd[2];
-            int fd_s[2];
-            check(pipe(fd));
-            check(pipe(fd_s));
-            pid_t p_id = check(fork());
+                if(isParent)
+                {
+                    fd_to_send = fd[1];
+                    fd_to_recv = fd_s[0];
+                    close(fd[0]);
+                    close(fd_s[1]);
+                }
+                else
+                {
+                    fd_to_send = fd_s[1];
+                    fd_to_recv = fd[0];
+                    close(fd_s[0]);
+                    close(fd[1]);
+                }
+            }
 
             do {
                 if(count % 2 != 0)
@@ -87,14 +108,14 @@ int main()
                 {
                     if(game_flag)
                     {
-                        sleep(0.5);
-                        PIPE::guess(fd_s[1], fd[0]);
+                        usleep(500000);
+                        PIPE::guess(fd_to_send, fd_to_recv);
                     }
 
                     else
                     {
                         sleep(1);
-                        PIPE::assumpt(fd[1], fd_s[0]);
+                        PIPE::assumpt(fd_to_send, fd_to_recv);
                     }
                 }
                 else
@@ -102,12 +123,12 @@ int main()
                     if(game_flag)
                     {
                         sleep(1);
-                        PIPE::assumpt(fd[1], fd_s[0]);
+                        PIPE::assumpt(fd_to_send, fd_to_recv);
                     }
                     else
                     {
-                        sleep(0.5);
-                        PIPE::guess(fd_s[1], fd[0]);
+                        usleep(500000);
+                        PIPE::guess(fd_to_send, fd_to_recv);
                     }
                 }
                 stat_display(count);

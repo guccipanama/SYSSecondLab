@@ -52,7 +52,7 @@ namespace PIPE
             std::shuffle(attempt.begin(), attempt.end(), g);
 
             do {
-                usleep(100);
+                //usleep(100);
                 value = attempt[0];
                 assumption_display(value);
                 check(write(w_fd, &value, sizeof(value)));
